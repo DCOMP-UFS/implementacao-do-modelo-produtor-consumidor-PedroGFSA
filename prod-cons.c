@@ -86,13 +86,13 @@ int main(int argc, char* argv[]) {
    srand(time(NULL));
    long i;
    
-   for (i = 3; i < THREAD_NUM*2; i++){  
+   for (i = 0; i < THREAD_NUM*2; i++){  
       if (pthread_create(&thread[i], NULL, &startThreadsProdutoras, (void*) i) != 0) {
          perror("Failed to create the thread");
       }  
    }
    
-   for (i = 0; i < THREAD_NUM; i++){  
+   for (i = THREAD_NUM; i < 2*THREAD_NUM; i++){  
       if (pthread_create(&thread[i], NULL, &startThreadsConsumidoras, (void*) i) != 0) {
          perror("Failed to create the thread");
       }  
