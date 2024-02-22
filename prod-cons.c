@@ -15,54 +15,54 @@
 #include <semaphore.h>
 #include <time.h>
 
-#define THREAD_NUM 4    // Tamanho do pool de threads
-#define BUFFER_SIZE 256 // Número máximo de tarefas enfileiradas
+#define THREAD_NUM 3    // Tamanho do pool de threads
+#define BUFFER_SIZE 256 // Número máximo de clocks enfileirados
 
-typedef struct Task{
-   int a, b; // valores que serao somados na execução da tarefa
-}Task;
+typedef struct Clock { 
+  int p[3];
+} Clock;
 
-Task taskQueue[BUFFER_SIZE]; // Lista de tarefas
-int taskCount = 0;
+
+Clock clockQueue[BUFFER_SIZE]; // Lista de clocks
+int clockCount = 0;
 
 pthread_mutex_t mutex; // define mutex
 
 pthread_cond_t condFull; // declara condição
 pthread_cond_t condEmpty; // declara condição
 
-void executeTask(Task* task, int id){
-   int result = task->a + task->b;
-   printf("(Thread %d) Sum of %d and %d is %d\n", id, task->a, task->b, result);
+void printClock(Clock* clock, int id) {
+   printf("Thread %d, Clock: (%d, %d, %d)\n", id, clock->p[0], clock->p[1], clock->p[2]);
 }
 
-Task getTask(){
+Clock getClock(){
    pthread_mutex_lock(&mutex);
    
-   while (taskCount == 0){
+   while (clockCount == 0){
       pthread_cond_wait(&condEmpty, &mutex);
    }
    
-   Task task = taskQueue[0];
+   Clock clock = clockQueue[0];
    int i;
-   for (i = 0; i < taskCount - 1; i++){
-      taskQueue[i] = taskQueue[i+1];
+   for (i = 0; i < clockCount - 1; i++){
+      clockQueue[i] = clockQueue[i+1];
    }
-   taskCount--;
+   clockCount--;
    
    pthread_mutex_unlock(&mutex);
    pthread_cond_signal(&condFull);
-   return task;
+   return clock;
 }
 
-void submitTask(Task task){
+void submitClock(Clock clock){
    pthread_mutex_lock(&mutex);
 
-   while (taskCount == BUFFER_SIZE){
+   while (clockCount == BUFFER_SIZE){
       pthread_cond_wait(&condFull, &mutex);
    }
 
-   taskQueue[taskCount] = task;
-   taskCount++;
+   clockQueue[clockCount] = clock;
+   clockCount++;
 
    pthread_mutex_unlock(&mutex);
    pthread_cond_signal(&condEmpty);
@@ -87,11 +87,12 @@ int main(int argc, char* argv[]) {
    
    srand(time(NULL));
    for (i = 0; i < 500; i++){
-      Task t = {
-         .a = rand() % 100,
-         .b = rand() % 100
+      Clock c = {
+         .p[0] = rand() % 10 
+         .p[1] = rand() % 10 
+         .p[2] = rand() % 10 
       };
-      submitTask(t);
+      submitClock(c);
    }
    
    for (i = 0; i < THREAD_NUM; i++){  
@@ -110,8 +111,8 @@ int main(int argc, char* argv[]) {
 void *startThread(void* args) {
    long id = (long) args; 
    while (1){ 
-      Task task = getTask();
-      executeTask(&task, id);
+      Clock clock = getClock();
+      printClock(&clock, id);
       sleep(rand()%5);
    }
    return NULL;
