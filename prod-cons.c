@@ -83,15 +83,17 @@ int main(int argc, char* argv[]) {
    pthread_cond_init(&condFull, NULL);
 
    pthread_t thread[THREAD_NUM]; 
+   srand(time(NULL));
    long i;
-   for (i = 0; i < THREAD_NUM; i++){  
-      if (pthread_create(&thread[i], NULL, &startThreadsConsumidoras, (void*) i) != 0) {
+   
+   for (i = 3; i < THREAD_NUM*2; i++){  
+      if (pthread_create(&thread[i], NULL, &startThreadsProdutoras, (void*) i) != 0) {
          perror("Failed to create the thread");
       }  
    }
    
-   for (i = 3; i < THREAD_NUM*2; i++){  
-      if (pthread_create(&thread[i], NULL, &startThreadsProdutoras, (void*) i) != 0) {
+   for (i = 0; i < THREAD_NUM; i++){  
+      if (pthread_create(&thread[i], NULL, &startThreadsConsumidoras, (void*) i) != 0) {
          perror("Failed to create the thread");
       }  
    }
@@ -121,9 +123,8 @@ void *startThreadsConsumidoras(void* args) {
 } 
 
 void *startThreadsProdutoras(void* args) {
-   long id = (long) args; 
+   long id = (long) args;
    while (1){
-      srand(time(NULL));
       Clock c = {{rand() % 10, rand() % 10, rand() % 10 }};
       submitClock(c);
       printSubmitClock(&c, id);
